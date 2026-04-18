@@ -6,7 +6,8 @@ import { LoadingState } from '../components/states/LoadingState';
 import { TopicTabs } from '../components/topics/TopicTabs';
 import { useTodayNews } from '../hooks/useTodayNews';
 import { useTopics } from '../hooks/useTopics';
-import { getOrderedTopics, getTopicMeta, isTopicKey } from '../types/api';
+import { getSampleNewsItems } from '../lib/sampleNews';
+import { getOrderedTopics, getTopicMeta, isTopicKey, NewsListItemDto } from '../types/api';
 
 export default function TopicPage() {
   const { topicKey } = useParams<{ topicKey: string }>();
@@ -18,13 +19,67 @@ export default function TopicPage() {
   }
 
   const orderedTopics = getOrderedTopics(topics);
-
-  if (loading || topicsLoading) return <LoadingState />;
-  if (error || topicsError) return <ErrorState message={error ?? topicsError ?? 'Unknown error'} />;
+  const hasRequestError = Boolean(error || topicsError);
+  const isInitialLoading = loading || topicsLoading;
 
   const group = news?.topics.find((item) => item.topicKey === topicKey);
   const topic = orderedTopics.find((item) => item.key === topicKey);
   const topicMeta = getTopicMeta(topicKey);
+  const liveGroupItems: NewsListItemDto[] = (group?.items ?? []).map((item) => ({
+    ...item,
+    listKey: `${topicKey}:${item.id}`,
+    topicKey,
+    topicDisplayName: group?.displayName ?? topic?.displayName ?? topicMeta.displayName,
+  }));
+  const sampleItems = getSampleNewsItems(orderedTopics).filter((item) => item.topicKey === topicKey);
+  const groupItems = liveGroupItems.length > 0 ? liveGroupItems : sampleItems;
+
+  if (isInitialLoading) {
+    return (
+      <main style={{ display: 'grid', gap: 16 }}>
+        <div>
+          <Link to="/">← Back to home</Link>
+        </div>
+
+        <section>
+          <h1 style={{ marginBottom: 8 }}>{topic?.displayName ?? topicMeta.displayName}</h1>
+          <p style={{ marginTop: 0, color: '#475467', lineHeight: 1.6, maxWidth: 760 }}>
+            {topic?.description ?? topicMeta.description}
+          </p>
+          <p style={{ marginTop: 0, color: '#667085', fontSize: 14 }}>
+            Coverage date: <strong>{news?.targetDate ?? 'Unavailable'}</strong>
+          </p>
+        </section>
+
+        <TopicTabs topics={orderedTopics} activeKey={topicKey} getHref={(key) => `/topics/${key}`} />
+        <LoadingState message={`Loading curated items for ${topic?.displayName ?? topicMeta.displayName}…`} />
+      </main>
+    );
+  }
+
+  if (hasRequestError) {
+    return (
+      <main style={{ display: 'grid', gap: 16 }}>
+        <div>
+          <Link to="/">← Back to home</Link>
+        </div>
+
+        <section>
+          <h1 style={{ marginBottom: 8 }}>{topic?.displayName ?? topicMeta.displayName}</h1>
+          <p style={{ marginTop: 0, color: '#475467', lineHeight: 1.6, maxWidth: 760 }}>
+            {topic?.description ?? topicMeta.description}
+          </p>
+          <p style={{ marginTop: 0, color: '#667085', fontSize: 14 }}>
+            Coverage date: <strong>{news?.targetDate ?? 'Unavailable'}</strong>
+          </p>
+        </section>
+
+        <TopicTabs topics={orderedTopics} activeKey={topicKey} getHref={(key) => `/topics/${key}`} />
+        <ErrorState message={error ?? topicsError ?? 'Unknown error'} />
+        <NewsList items={groupItems} emptyMessage={`Unable to load ${topic?.displayName ?? topicMeta.displayName} right now.`} />
+      </main>
+    );
+  }
 
   if (!group) {
     return (
@@ -33,7 +88,7 @@ export default function TopicPage() {
           <Link to="/">← Back to home</Link>
         </div>
         <TopicTabs topics={orderedTopics} activeKey={topicKey} getHref={(key) => `/topics/${key}`} />
-        <EmptyState message={`No curated items are available for ${topic?.displayName ?? topicMeta.displayName} today.`} />
+        <NewsList items={groupItems} emptyMessage={`No curated items are available for ${topic?.displayName ?? topicMeta.displayName} today.`} />
       </main>
     );
   }
@@ -55,7 +110,7 @@ export default function TopicPage() {
       </section>
 
       <TopicTabs topics={orderedTopics} activeKey={topicKey} getHref={(key) => `/topics/${key}`} />
-      <NewsList items={group.items} emptyMessage={`No curated items are available for ${group.displayName} today.`} />
+      <NewsList items={groupItems} emptyMessage={`No curated items are available for ${group.displayName} today.`} />
     </main>
   );
 }

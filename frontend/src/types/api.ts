@@ -11,6 +11,8 @@ export const TOPIC_KEYS = [
 
 export type TopicKey = (typeof TOPIC_KEYS)[number];
 
+export type TopicFilterKey = TopicKey | 'all';
+
 export interface TopicDto {
   key: TopicKey;
   displayName: string;
@@ -25,6 +27,12 @@ export interface TodayNewsItemDto {
   sourceName: string;
   sourceUrl: string;
   publishedAt: string | null;
+}
+
+export interface NewsListItemDto extends TodayNewsItemDto {
+  listKey: string;
+  topicKey: TopicKey;
+  topicDisplayName: string;
 }
 
 export interface TodayNewsByTopicDto {
@@ -78,7 +86,8 @@ export function isTopicKey(value: string): value is TopicKey {
 }
 
 export function getOrderedTopics(topics: TopicDto[] | null | undefined): TopicDto[] {
-  const topicMap = new Map((topics ?? []).map((topic) => [topic.key, topic]));
+  const safeTopics = Array.isArray(topics) ? topics : [];
+  const topicMap = new Map(safeTopics.map((topic) => [topic.key, topic]));
 
   return TOPIC_KEYS.map((key, index) => {
     const topic = topicMap.get(key);

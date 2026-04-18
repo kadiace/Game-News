@@ -2,6 +2,19 @@ import { TodayNewsResponseDto, TopicDto } from '../types/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
+function isTopicDtoArray(value: unknown): value is TopicDto[] {
+  return Array.isArray(value);
+}
+
+function isTodayNewsResponseDto(value: unknown): value is TodayNewsResponseDto {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const candidate = value as Partial<TodayNewsResponseDto>;
+  return typeof candidate.targetDate === 'string' && Array.isArray(candidate.topics);
+}
+
 async function parseResponseBody<T>(response: Response): Promise<T> {
   if (response.status === 204) {
     return undefined as T;
@@ -54,12 +67,24 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export function fetchTopics(): Promise<TopicDto[]> {
-  return request<TopicDto[]>('/topics');
+  return request<unknown>('/topics').then((data) => {
+    if (!isTopicDtoArray(data)) {
+      throw new Error('Invalid topics response. Check VITE_API_BASE_URL or the Vite dev proxy.');
+    }
+
+    return data;
+  });
 }
 
 export function fetchTodayNews(targetDate?: string): Promise<TodayNewsResponseDto> {
   const query = targetDate ? `?targetDate=${encodeURIComponent(targetDate)}` : '';
-  return request<TodayNewsResponseDto>(`/news/today${query}`);
+  return request<unknown>(`/news/today${query}`).then((data) => {
+    if (!isTodayNewsResponseDto(data)) {
+      throw new Error('Invalid today news response. Check VITE_API_BASE_URL or the Vite dev proxy.');
+    }
+
+    return data;
+  });
 }
 
 export function subscribe(email: string) {

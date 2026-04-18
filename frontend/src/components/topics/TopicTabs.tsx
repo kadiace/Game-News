@@ -1,12 +1,13 @@
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
-import { TopicDto, TopicKey } from '../../types/api';
+import { TopicDto, TopicFilterKey, TopicKey } from '../../types/api';
 
 type Props = {
   topics: TopicDto[];
-  activeKey: TopicKey;
-  onSelect?: (topicKey: TopicKey) => void;
-  getHref?: (topicKey: TopicKey) => string;
+  activeKey: TopicFilterKey;
+  onSelect?: (topicKey: TopicFilterKey) => void;
+  getHref?: (topicKey: TopicFilterKey) => string;
+  includeAll?: boolean;
 };
 
 const tabStyle = {
@@ -22,12 +23,18 @@ const tabStyle = {
   cursor: 'pointer',
 } satisfies CSSProperties;
 
-export function TopicTabs({ topics, activeKey, onSelect, getHref }: Props) {
+const allTab = { key: 'all' as const, displayName: 'All' };
+
+export function TopicTabs({ topics, activeKey, onSelect, getHref, includeAll = false }: Props) {
   if (topics.length === 0) return null;
+
+  const tabs: Array<{ key: TopicFilterKey; displayName: string }> = includeAll
+    ? [allTab, ...topics.map((topic) => ({ key: topic.key, displayName: topic.displayName }))]
+    : topics.map((topic) => ({ key: topic.key, displayName: topic.displayName }));
 
   return (
     <nav aria-label="Topic navigation" style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-      {topics.map((topic) => (
+      {tabs.map((topic) => (
         getHref ? (
           <Link
             key={topic.key}
