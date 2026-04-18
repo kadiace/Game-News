@@ -1,4 +1,5 @@
 import { FormEvent, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { unsubscribe } from '../lib/api';
 
 export default function UnsubscribePage() {
@@ -23,8 +24,16 @@ export default function UnsubscribePage() {
   }
 
   return (
-    <main style={{ padding: 24 }}>
-      <h1>Unsubscribe</h1>
+    <main style={{ display: 'grid', gap: 16 }}>
+      <div>
+        <Link to="/">← Back to home</Link>
+      </div>
+      <div>
+        <h1 style={{ marginBottom: 8 }}>Unsubscribe</h1>
+        <p style={{ marginTop: 0, color: '#475467', lineHeight: 1.6, maxWidth: 680 }}>
+          Remove your email from future deliveries. This keeps the subscription flow complete while the product is still in its text-first phase.
+        </p>
+      </div>
       <form onSubmit={onSubmit} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
         <input
           type="email"
@@ -38,7 +47,7 @@ export default function UnsubscribePage() {
           {isSubmitting ? 'Submitting...' : 'Unsubscribe'}
         </button>
       </form>
-      {message ? <p>{message}</p> : null}
+      {message ? <p style={{ margin: 0 }}>{message}</p> : null}
     </main>
   );
 }

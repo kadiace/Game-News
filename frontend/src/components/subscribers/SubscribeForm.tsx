@@ -23,19 +23,33 @@ export function SubscribeForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-      <input
-        type="email"
-        placeholder="Enter your email"
-        required
-        value={email}
-        onChange={(event) => setEmail(event.target.value)}
-        style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #ccc', minWidth: 260 }}
-      />
-      <button type="submit" disabled={isSubmitting} style={{ padding: '8px 12px', borderRadius: 6 }}>
-        {isSubmitting ? 'Submitting...' : 'Subscribe'}
-      </button>
-      {message ? <span>{message}</span> : null}
+    <form onSubmit={onSubmit} style={{ display: 'grid', gap: 12, maxWidth: 520 }}>
+      <label htmlFor="subscriber-email" style={{ fontWeight: 600 }}>
+        Email address
+      </label>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+        <input
+          id="subscriber-email"
+          type="email"
+          placeholder="Enter your email"
+          required
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #cbd5e1', minWidth: 260, flex: '1 1 260px' }}
+        />
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #111827', background: '#111827', color: '#ffffff' }}
+        >
+          {isSubmitting ? 'Submitting...' : 'Subscribe'}
+        </button>
+      </div>
+      {message ? (
+        <p aria-live="polite" style={{ margin: 0, color: message.toLowerCase().includes('failed') ? '#b42318' : '#067647' }}>
+          {message}
+        </p>
+      ) : null}
     </form>
   );
 }

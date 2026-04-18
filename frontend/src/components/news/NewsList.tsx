@@ -4,11 +4,12 @@ import { NewsCard } from './NewsCard';
 
 type Props = {
   items: TodayNewsItemDto[];
+  emptyMessage?: string;
 };
 
-export function NewsList({ items }: Props) {
+export function NewsList({ items, emptyMessage }: Props) {
   if (items.length === 0) {
-    return <EmptyState message="No curated news items available for this topic yet." />;
+    return <EmptyState message={emptyMessage ?? 'No curated news items available for this topic yet.'} />;
   }
 
   return (

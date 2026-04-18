@@ -8,15 +8,32 @@ export function useTopics() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let isActive = true;
+
+    setLoading(true);
+    setError(null);
+
     fetchTopics()
       .then((data) => {
+        if (!isActive) {
+          return;
+        }
+
         setTopics(data);
         setLoading(false);
       })
       .catch((err: unknown) => {
+        if (!isActive) {
+          return;
+        }
+
         setError(err instanceof Error ? err.message : 'Failed to load topics.');
         setLoading(false);
       });
+
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   return { topics, loading, error };
