@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SubscriberStatus {
+  pending
+  active
+  unsubscribed
+  bounced
+}
+
+enum SourceType {
+  official
+  media
+  community
+  rumor
+}
+
+model Topic {
+  id          String              @id @default(cuid())
+  key         String              @unique
+  displayName String
+  description String
+  sortOrder   Int
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  rawItems       RawSourceItem[]
+  processedItems ProcessedNewsItem[]
+
+  @@index([sortOrder])
+  @@index([isActive])
+}
+
+model Subscriber {
+  id                String            @id @default(cuid())
+  email             String            @unique
+  status            SubscriberStatus  @default(pending)
+  verificationToken String?           @unique
+  subscribedAt      DateTime          @default(now())
+  verifiedAt        DateTime?
+  unsubscribedAt    DateTime?
+  lastSentAt        DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([status])
+}
+
+model RawSourceItem {
+  id          String              @id @default(cuid())
+  topicId     String
+  sourceType  SourceType
+  sourceName  String
+  sourceUrl   String
+  title       String
+  body        String              @db.Text
+  author      String?
+  publishedAt DateTime?
+  collectedAt DateTime            @default(now())
+  language    String?
+  metadata    Json?
+  hash        String?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  topic           Topic                @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  processedItems  ProcessedNewsItem[]
+
+  @@unique([sourceUrl])
+  @@index([topicId, collectedAt])
+  @@index([topicId, publishedAt])
+  @@index([sourceType])
+  @@index([hash])
+}
+
+model ProcessedNewsItem {
+  id                        String         @id @default(cuid())
+  rawSourceItemId           String
+  topicId                   String
+  targetDate                DateTime
+  normalizedTitle           String
+  summaryShort              String
+  summaryLong               String         @db.Text
+  interestScore             Float
+  importanceScore           Float
+  trustScore                Float
+  tags                      Json?
+  dedupeGroupKey            String?
+  isRepresentativeCandidate Boolean        @default(false)
+  createdAt                 DateTime       @default(now())
+  updatedAt                 DateTime       @updatedAt
+
+  rawSourceItem RawSourceItem @relation(fields: [rawSourceItemId], references: [id], onDelete: Cascade)
+  topic         Topic         @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([rawSourceItemId, targetDate])
+  @@index([topicId, targetDate])
+  @@index([rawSourceItemId])
+  @@index([dedupeGroupKey])
+  @@index([isRepresentativeCandidate])
+}
