@@ -1,0 +1,29 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "collection": {
+      "prompt": "{file:./prompts/collection.md}"
+    },
+    "processing": {
+      "prompt": "{file:./prompts/processing.md}"
+    },
+    "topic-pick": {
+      "prompt": "{file:./prompts/topic-pick.md}"
+    },
+    "card-asset": {
+      "prompt": "{file:./prompts/card-asset.md}"
+    },
+    "newsletter": {
+      "prompt": "{file:./prompts/newsletter.md}"
+    },
+    "backend-dev": {
+      "prompt": "{file:./prompts/backend-dev.txt}"
+    },
+    "frontend-dev": {
+      "prompt": "{file:./prompts/frontend-dev.txt}"
+    },
+    "stabilizer": {
+      "prompt": "{file:./prompts/fullstack-stabilizer.txt}"
+    }
+  }
+}
